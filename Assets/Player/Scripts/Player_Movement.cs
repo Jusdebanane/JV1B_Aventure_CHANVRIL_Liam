@@ -5,10 +5,17 @@ using UnityEngine;
 public class Player_Movement : MonoBehaviour
 {
     private Rigidbody2D body;
+    private Animator anim;
+
+    [Header("Health + Death |settings")]
+    public float health;
+    public float invulnerable_cooldown;
+    bool invulnerable = false;
 
     [Header("Basic movement |settings")]
-    private Vector2 move_input;
     public float speed;
+    private Vector2 move_input;
+    
 
     [Header("Dash |settings")]
     public float dash_speed;
@@ -17,13 +24,22 @@ public class Player_Movement : MonoBehaviour
     bool can_dash = true;
     bool is_dashing = false;
 
-    [Header("Atk |settings")]
+    [Header("Aim |settings")]
     public Transform weapon;
     public float offset;
+
+    [Header("Atk |settings")]
+    public CircleCollider2D atk_area;
+    public float atk_time;
+    public float atk_cooldown;
+    bool can_atk = true;
+    bool is_atk = false;
 
     void Start()
     {
         body = GetComponent<Rigidbody2D>();
+        anim = GetComponent<Animator>();
+        atk_area.enabled = false;
     }
 
 
@@ -42,22 +58,75 @@ public class Player_Movement : MonoBehaviour
             StartCoroutine(Dash());
         }
 
+        //AIM
+        if (!is_atk)
+        {
+            Vector3 displacement = weapon.position - Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            float angle = -Mathf.Atan2(displacement.x, displacement.y) * Mathf.Rad2Deg;
+            weapon.rotation = Quaternion.Euler(0, 0, angle + offset);
+            //AIM ANIM
+            anim.SetFloat("angle", angle);
+        }
+        
+        
         //ATK
-        Vector3 displacement = weapon.position - Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        float angle = - Mathf.Atan2(displacement.x, displacement.y) * Mathf.Rad2Deg;
-        weapon.rotation = Quaternion.Euler(0, 0, angle + offset);
-
+        if(Input.GetKeyDown(KeyCode.Mouse0) && can_atk)
+        {
+            StartCoroutine(Atk());
+        }
     }
 
     private IEnumerator Dash()
     {
         can_dash = false;
         is_dashing = true;
+        invulnerable = true;
         body.velocity = move_input * dash_speed;
         yield return new WaitForSeconds(dash_time);
         is_dashing = false;
+        invulnerable = false;
         yield return new WaitForSeconds(dash_cooldown);
         can_dash = true;
+    }
+
+    private IEnumerator Atk()
+    {
+        can_atk = false;
+        is_atk = true;
+        atk_area.enabled = true;
+        yield return new WaitForSeconds(atk_time);
+        atk_area.enabled = false;
+        is_atk = false;
+        yield return new WaitForSeconds(atk_cooldown);
+        can_atk = true;
+    }
+
+    private IEnumerator Dmg()
+    {
+        invulnerable = true;
+        yield return new WaitForSeconds(invulnerable_cooldown);
+        invulnerable = false;
+    }
+
+    private void Death()
+    {
+        Destroy(gameObject);
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Weapon") && !invulnerable)
+        {
+            health -= 1;
+            if (health > 0)
+            {
+                StartCoroutine(Dmg());
+            } 
+            else if (health <= 0)
+            {
+                Death();
+            }
+        }
     }
 }
 
