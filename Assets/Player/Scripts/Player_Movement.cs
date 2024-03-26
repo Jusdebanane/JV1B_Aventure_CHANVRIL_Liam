@@ -5,7 +5,9 @@ using UnityEngine;
 public class Player_Movement : MonoBehaviour
 {
     private Rigidbody2D body;
+    private SpriteRenderer sprite;
     private Animator anim;
+    public Animator atk_anim;
 
     [Header("Health + Death |settings")]
     public float health;
@@ -29,7 +31,7 @@ public class Player_Movement : MonoBehaviour
     public float offset;
 
     [Header("Atk |settings")]
-    public CircleCollider2D atk_area;
+    public CapsuleCollider2D atk_area;
     public float atk_time;
     public float atk_cooldown;
     bool can_atk = true;
@@ -38,6 +40,7 @@ public class Player_Movement : MonoBehaviour
     void Start()
     {
         body = GetComponent<Rigidbody2D>();
+        sprite = GetComponent<SpriteRenderer>();
         anim = GetComponent<Animator>();
         atk_area.enabled = false;
     }
@@ -66,11 +69,19 @@ public class Player_Movement : MonoBehaviour
             weapon.rotation = Quaternion.Euler(0, 0, angle + offset);
             //AIM ANIM
             anim.SetFloat("angle", angle);
+            //ATK ANGLE
+            if (angle > 0)
+            {
+                atk_area.transform.localScale = new Vector3(2,1.5f,1);
+            } else if (angle < 0)
+            {
+                atk_area.transform.localScale = new Vector3(2,-1.5f, 1);
+            }
         }
         
         
         //ATK
-        if(Input.GetKeyDown(KeyCode.Mouse0) && can_atk)
+        if(Input.GetKey(KeyCode.Mouse0) && can_atk)
         {
             StartCoroutine(Atk());
         }
@@ -94,6 +105,7 @@ public class Player_Movement : MonoBehaviour
         can_atk = false;
         is_atk = true;
         atk_area.enabled = true;
+        atk_anim.SetTrigger("atk");
         yield return new WaitForSeconds(atk_time);
         atk_area.enabled = false;
         is_atk = false;
@@ -104,8 +116,10 @@ public class Player_Movement : MonoBehaviour
     private IEnumerator Dmg()
     {
         invulnerable = true;
+        sprite.color = new Color(1,0,0,1);
         yield return new WaitForSeconds(invulnerable_cooldown);
         invulnerable = false;
+        sprite.color = new Color(1, 1, 1, 1);
     }
 
     private void Death()
