@@ -85,6 +85,12 @@ public class Player_Movement : MonoBehaviour
         {
             StartCoroutine(Atk());
         }
+
+        //DEATH
+        if (health <= 0)
+        {
+            Death();
+        }
     }
 
     private IEnumerator Dash()
@@ -129,17 +135,21 @@ public class Player_Movement : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Weapon") && !invulnerable)
+        if (other.CompareTag("Enemi_weapon") && !invulnerable)
         {
             health -= 1;
             if (health > 0)
             {
                 StartCoroutine(Dmg());
-            } 
-            else if (health <= 0)
-            {
-                Death();
             }
+        }
+        if (other.CompareTag("Explosion"))
+        {
+            health -= 2;
+            if (health > 0)
+            {
+                StartCoroutine(Dmg());
+            };
         }
     }
 }

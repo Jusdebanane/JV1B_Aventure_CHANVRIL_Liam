@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Weapon
   - Enemi
+  - Explosion
+  - Enemi_weapon
   layers:
   - Default
   - TransparentFX
@@ -14,7 +16,7 @@ TagManager:
   - Water
   - UI
   - Enemis
-  - 
+  - Projectile
   - 
   - 
   - 

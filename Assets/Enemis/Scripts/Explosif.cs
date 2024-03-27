@@ -1,8 +1,9 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
-public class Runner : MonoBehaviour
+public class Explosif : MonoBehaviour
 {
     [Header("Health + Death |settings")]
     public float health;
@@ -25,7 +26,7 @@ public class Runner : MonoBehaviour
     {
         atk_area.enabled = false;
     }
-    
+
     void Update()
     {
         //FOLLOW
@@ -37,15 +38,9 @@ public class Runner : MonoBehaviour
         }
 
         //ATK
-        if(distance < atk_range && !is_atk && can_atk)
+        if (distance < atk_range && !is_atk && can_atk)
         {
             StartCoroutine(Atk());
-        }
-
-        //DEATH
-        if (health <= 0)
-        {
-            Death();
         }
     }
 
@@ -57,9 +52,7 @@ public class Runner : MonoBehaviour
         atk_area.enabled = true;
         yield return new WaitForSeconds(atk_time);
         atk_area.enabled = false;
-        is_atk = false;
-        yield return new WaitForSeconds(atk_cooldown);
-        can_atk = true;
+        Death();
     }
 
     private void Death()
@@ -72,10 +65,10 @@ public class Runner : MonoBehaviour
         if (other.CompareTag("Weapon"))
         {
             health -= 1;
-        }
-        else if (other.CompareTag("Explosion"))
-        {
-            health -= 100;
+            if (health <= 0)
+            {
+                StartCoroutine(Atk());
+            }
         }
     }
 }
